@@ -1,0 +1,223 @@
+int state;
+float cameraX, cameraY, cameraZ;
+float[] x;
+float[] z;
+float xe, ye, ze;
+float d1;
+float r = 2;
+float baseH = 3;
+float armL1 = 60;
+float armL2 = 60;
+float armW1 = 5;
+float armW2 = 5;
+float angle0 = 0;
+float angle1 = 0;
+float angle2 = 0;
+float dif = 0.7;
+float difc = 1.0;
+
+
+void setup(){
+  size(1000, 700, P3D);
+  translate(width/2, height/2, 0);
+  cameraX = 0;
+  cameraY = 120;
+  cameraZ = -100;
+  camera(cameraX, cameraY, cameraZ, 0, 0, 0, 0, 0, -1);
+  
+  state = 0;
+  
+  textSize(10);
+  textAlign(RIGHT);
+  
+  //ball point
+  x = new float[5];
+  z = new float[5];
+  for(int i=0; i<x.length;i++){
+    x[i] = random(-40,40);
+  }
+  for(int i=0; i<z.length;i++){
+    z[i] = random(-40,40);
+  }
+  
+  ///background(255);
+  noStroke();
+}
+
+void draw(){
+  background(255);
+  
+  //move camera
+  camera(cameraX, cameraY, cameraZ, 0, 0, 0, 0, 0, -1);
+  if(keyPressed){
+    if( key == CODED){
+      if(keyCode == RIGHT){
+        cameraX = cameraX + difc;
+      }
+      else if(keyCode == LEFT){
+        cameraX = cameraX - difc;
+      }
+      else if(keyCode == UP){
+        cameraY = cameraY + difc;
+      }
+      else if(keyCode == DOWN){
+        cameraY = cameraY - difc;
+      }
+    }
+    else if( key == 'k'){
+      cameraZ = cameraZ + difc;
+    }
+    else if (key == 'l'){
+      cameraZ = cameraZ - difc;
+    }
+  }
+  
+  //field
+  pushMatrix();
+  translate(0, -r/2, 0);
+  noStroke();
+  fill(200);
+  box(100, r, 100);
+  popMatrix();
+  
+  int nextState = 0;
+  if(state == 0){
+    nextState = title();
+  }
+  else if(state >= 1 && state <= 5){
+    nextState = game();
+  }
+  else if(state == 6){
+    nextState = ending();
+  }
+  
+  state = nextState;
+  
+  //end point
+  xe = -cos(radians(angle0))*sin(radians(angle1))*armL1 
+         + cos(radians(angle0))*cos(radians(angle1+angle2))*armL2 -70;
+  ye = cos(radians(angle1))*armL1 + sin(radians(angle1+angle2))*armL2;
+  ze = sin(radians(angle0))*sin(radians(angle1))*armL1 
+         - sin(radians(angle0))*cos(radians(angle1+angle2))*armL2;
+  
+  //draw end point
+  pushMatrix();
+  translate(xe, ye, ze);
+  fill(200,30,50);
+  sphere(r);
+  popMatrix();
+  
+  //manipulate arms
+  if(keyPressed){
+     if(key == 'b'){
+       angle0 = angle0 + dif;
+     }
+     if(key == 'B'){
+       angle0 = angle0 - dif;
+     }         
+     if(key == 's'){
+       angle1 = angle1 + dif;
+     }
+     if(key == 'S'){
+       angle1 = angle1 - dif;
+     }
+     if(key == 'n'){
+       angle2 = angle2 + dif;
+     }
+     if(key == 'N'){
+       angle2 = angle2 - dif;
+     }
+  }
+  
+  //base
+  translate(-70, 0, 0);
+  rotateY(radians(angle0));
+  translate(0, -baseH/2, 0);
+  fill(100);
+  box(20, baseH, 20);
+     
+  //1st link
+  rotateZ(radians(angle1));
+  translate(0, armL1/2, 0);
+  fill(120);
+  box(armW1, armL1, armW1);
+  
+  //2nd link
+  //go to 2nd joint
+  translate(0, armL1/2 + armW1/2, 0);
+  rotateZ(radians(angle2));
+  //go to center of 2nd joint
+  translate(armL2/2, 0, 0);
+  fill(140);
+  box(armL2, armW2, armW2);
+}
+
+int title(){
+  pushMatrix();
+  rotateZ(-atan2(cameraX, cameraY));
+  rotateX(-atan2(sqrt(sq(cameraX)+sq(cameraY)), cameraZ));
+  translate(0, 0, sqrt(sq(cameraX)+sq(cameraY)+sq(cameraZ))-250);
+  hint(DISABLE_DEPTH_TEST);
+  fill(0);
+  text("Ball game!", 190, -120, 0);
+  fill(0);
+  text("Press 'z' key to start", 190, -100, 0);
+  hint(ENABLE_DEPTH_TEST); 
+  popMatrix();
+  if(keyPressed && key == 'z'){
+    return 1;
+  }
+  return 0;
+}
+
+int game(){
+  //explanation
+  pushMatrix();
+  rotateZ(-atan2(cameraX, cameraY));
+  rotateX(-atan2(sqrt(sq(cameraX)+sq(cameraY)), cameraZ));
+  translate(0, 0, sqrt(sq(cameraX)+sq(cameraY)+sq(cameraZ))-250);
+  hint(DISABLE_DEPTH_TEST);
+  fill(0);
+  text("Press 'b, B, s, S, n, N' to move these arms.", 190, -120, 0);
+  text("Press 'RIGHT, LEFT, UP, DOWN key and 'k, l'", 190, -100, 0);
+  text("to change the camera perspective.", 190, -80, 0);
+  text("Touch the red ball to the green ball!", 0, -120, 0);
+  hint(ENABLE_DEPTH_TEST); 
+  popMatrix();
+  
+  //draw ball
+  pushMatrix();
+  translate(x[state-1], r, z[state-1]);
+  fill(30,200,50);
+  sphere(r);
+  popMatrix();
+    
+  d1 = dist(xe, ye, ze, x[state-1], r, z[state-1]) - (r + r);
+    
+  if(d1 <= 0){
+    pushMatrix();
+    translate(x[state-1], r, z[state-1]);
+    fill(255);
+    sphere(2);
+    popMatrix();
+    return state + 1;
+  }
+  return state;
+}
+
+int ending(){
+  pushMatrix();
+  rotateZ(-atan2(cameraX, cameraY));
+  rotateX(-atan2(sqrt(sq(cameraX)+sq(cameraY)), cameraZ));
+  translate(0, 0, sqrt(sq(cameraX)+sq(cameraY)+sq(cameraZ))-250);
+  hint(DISABLE_DEPTH_TEST);
+  fill(0);
+  text("Ending", 190, -120, 0);
+  text("Press 'a' to restart.", 190, -100, 0);
+  hint(ENABLE_DEPTH_TEST); 
+  popMatrix();
+  if(keyPressed && key == 'a'){
+    return 0;
+  }
+  return 6;
+}
