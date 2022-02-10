@@ -31,8 +31,8 @@ void setup(){
   textAlign(RIGHT);
   
   //ball point
-  x = new float[5];
-  z = new float[5];
+  x = new float[3];
+  z = new float[3];
   for(int i=0; i<x.length;i++){
     x[i] = random(-40,40);
   }
@@ -84,10 +84,10 @@ void draw(){
   if(state == 0){
     nextState = title();
   }
-  else if(state >= 1 && state <= 5){
+  else if(state >= 1 && state <= 3){
     nextState = game();
   }
-  else if(state == 6){
+  else if(state == 4){
     nextState = ending();
   }
   
@@ -219,5 +219,5 @@ int ending(){
   if(keyPressed && key == 'a'){
     return 0;
   }
-  return 6;
+  return 4;
 }
